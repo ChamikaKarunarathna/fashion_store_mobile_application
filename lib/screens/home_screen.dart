@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../utils/dummy_data.dart';
 import '../widgets/product_card.dart';
+import 'collection_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -233,17 +234,25 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  Row(
-                    children: [
-                      Text(
-                        'See All',
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              fontSize: 12,
-                            ),
-                      ),
-                      const SizedBox(width: 2),
-                      const Icon(Icons.arrow_forward, color: AppTheme.primaryGreen, size: 14),
-                    ],
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const CollectionScreen()),
+                      );
+                    },
+                    child: Row(
+                      children: [
+                        Text(
+                          'See All',
+                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                fontSize: 12,
+                              ),
+                        ),
+                        const SizedBox(width: 2),
+                        const Icon(Icons.arrow_forward, color: AppTheme.primaryGreen, size: 14),
+                      ],
+                    ),
                   ),
                 ],
               ),
