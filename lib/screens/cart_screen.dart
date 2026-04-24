@@ -3,6 +3,8 @@ import '../models/cart_item.dart';
 import '../theme/app_theme.dart';
 import '../utils/dummy_data.dart';
 import 'checkout_screen.dart';
+import 'home_screen.dart';
+import 'profile_screen.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -324,10 +326,21 @@ class _CartScreenState extends State<CartScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _bottomNavIndex,
         onTap: (index) {
-          setState(() {
-            _bottomNavIndex = index;
-          });
-          // Usually here you'd handle top-level navigation.
+          if (index == 0) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
+          } else if (index == 3) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfileScreen()),
+            );
+          } else {
+            setState(() {
+              _bottomNavIndex = index;
+            });
+          }
         },
         type: BottomNavigationBarType.fixed,
         selectedItemColor: AppTheme.primaryGreen,

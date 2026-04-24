@@ -5,6 +5,7 @@ import '../widgets/product_card.dart';
 import 'collection_screen.dart';
 import 'product_details_screen.dart';
 import 'cart_screen.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -302,9 +303,21 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _bottomNavIndex,
         onTap: (index) {
-          setState(() {
-            _bottomNavIndex = index;
-          });
+          if (index == 3) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfileScreen()),
+            );
+          } else if (index == 2) {
+             Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const CartScreen()),
+            );
+          } else {
+            setState(() {
+              _bottomNavIndex = index;
+            });
+          }
         },
         type: BottomNavigationBarType.fixed,
         selectedItemColor: AppTheme.primaryGreen,
