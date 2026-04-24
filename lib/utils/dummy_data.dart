@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import '../models/product.dart';
+import '../models/cart_item.dart';
 
 class DummyData {
   static final List<String> categories = ['All', 'Men', 'Women', 'Accessories', 'Footwear'];
@@ -86,6 +88,45 @@ class DummyData {
       originalPrice: 99.00,
       imagePath: 'assets/images/collection_6.png',
       isNew: true,
+    ),
+  ];
+
+  static final List<CartItem> cartItems = [
+    CartItem(
+      product: Product(
+        id: 'cart1',
+        name: 'Linen Utility Overshirt',
+        category: 'MEN',
+        price: 89.00,
+        imagePath: 'assets/images/cart_1.png',
+      ),
+      quantity: 1,
+      selectedSize: 'L',
+      selectedColor: const Color(0xFF4A4A4A),
+    ),
+    CartItem(
+      product: Product(
+        id: 'cart2',
+        name: 'High-Waist Tailored Trouser',
+        category: 'WOMEN',
+        price: 124.50,
+        imagePath: 'assets/images/cart_2.png',
+      ),
+      quantity: 1,
+      selectedSize: 'M',
+      selectedColor: const Color(0xFFE5D5C5),
+    ),
+    CartItem(
+      product: Product(
+        id: 'cart3',
+        name: 'Essential Leather Sneakers',
+        category: 'FOOTWEAR',
+        price: 155.00,
+        imagePath: 'assets/images/cart_3.png',
+      ),
+      quantity: 1,
+      selectedSize: '42',
+      selectedColor: const Color(0xFFF0F0F0),
     ),
   ];
 }
