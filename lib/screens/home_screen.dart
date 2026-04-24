@@ -3,6 +3,7 @@ import '../theme/app_theme.dart';
 import '../utils/dummy_data.dart';
 import '../widgets/product_card.dart';
 import 'collection_screen.dart';
+import 'product_details_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -273,7 +274,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   return ProductCard(
                     product: DummyData.trendingProducts[index],
                     onTap: () {
-                      // Navigate to details
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProductDetailsScreen(
+                            product: DummyData.trendingProducts[index],
+                          ),
+                        ),
+                      );
                     },
                   );
                 },

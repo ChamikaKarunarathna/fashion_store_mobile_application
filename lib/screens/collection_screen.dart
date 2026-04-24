@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../utils/dummy_data.dart';
 import '../widgets/product_card.dart';
+import 'product_details_screen.dart';
 
 class CollectionScreen extends StatefulWidget {
   const CollectionScreen({super.key});
@@ -115,7 +116,14 @@ class _CollectionScreenState extends State<CollectionScreen> {
                           return ProductCard(
                             product: DummyData.collectionProducts[index],
                             onTap: () {
-                              // Navigate to details
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ProductDetailsScreen(
+                                    product: DummyData.collectionProducts[index],
+                                  ),
+                                ),
+                              );
                             },
                           );
                         },
