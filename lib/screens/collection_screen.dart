@@ -3,6 +3,9 @@ import '../theme/app_theme.dart';
 import '../utils/dummy_data.dart';
 import '../widgets/product_card.dart';
 import 'product_details_screen.dart';
+import 'home_screen.dart';
+import 'cart_screen.dart';
+import 'profile_screen.dart';
 
 class CollectionScreen extends StatefulWidget {
   const CollectionScreen({super.key});
@@ -163,9 +166,26 @@ class _CollectionScreenState extends State<CollectionScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _bottomNavIndex,
         onTap: (index) {
-          setState(() {
-            _bottomNavIndex = index;
-          });
+          if (index == 0) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
+          } else if (index == 2) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const CartScreen()),
+            );
+          } else if (index == 3) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfileScreen()),
+            );
+          } else {
+            setState(() {
+              _bottomNavIndex = index;
+            });
+          }
         },
         type: BottomNavigationBarType.fixed,
         selectedItemColor: AppTheme.primaryGreen,
