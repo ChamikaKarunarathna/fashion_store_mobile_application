@@ -34,4 +34,58 @@ class DummyData {
       imagePath: 'assets/images/product_4.png',
     ),
   ];
+
+  static final List<Product> collectionProducts = [
+    Product(
+      id: 'c1',
+      name: 'Minimalist Silk Slip',
+      category: 'CK ESSENTIALS',
+      price: 75.00,
+      originalPrice: 99.00,
+      imagePath: 'assets/images/collection_1.png',
+    ),
+    Product(
+      id: 'c2',
+      name: 'Oversized Wool Blaze',
+      category: 'CK ESSENTIALS',
+      price: 145.00,
+      originalPrice: 199.00, // Adjusted from screenshot to make sense, but keeps strikethrough logic.
+      imagePath: 'assets/images/collection_2.png',
+      isFavorite: true,
+    ),
+    Product(
+      id: 'c3',
+      name: 'High-Waist Trousers',
+      category: 'CK ESSENTIALS',
+      price: 89.00,
+      originalPrice: 99.00,
+      imagePath: 'assets/images/collection_3.png',
+      isNew: true,
+    ),
+    Product(
+      id: 'c4',
+      name: 'Cropped Linen Shirt',
+      category: 'CK ESSENTIALS',
+      price: 55.00,
+      originalPrice: 99.00,
+      imagePath: 'assets/images/collection_4.png',
+    ),
+    Product(
+      id: 'c5',
+      name: 'Satin Midi Skirt',
+      category: 'CK ESSENTIALS',
+      price: 68.00,
+      originalPrice: 99.00,
+      imagePath: 'assets/images/collection_5.png',
+    ),
+    Product(
+      id: 'c6',
+      name: 'Ribbed Knit Sweater',
+      category: 'CK ESSENTIALS',
+      price: 92.00,
+      originalPrice: 99.00,
+      imagePath: 'assets/images/collection_6.png',
+      isNew: true,
+    ),
+  ];
 }
