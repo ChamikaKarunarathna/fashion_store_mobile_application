@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../theme/app_theme.dart';
+import 'cart_screen.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   final Product product;
@@ -393,7 +394,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         child: SafeArea(
           child: ElevatedButton(
             onPressed: () {
-              // Add to cart logic
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CartScreen()),
+              );
             },
             style: ElevatedButton.styleFrom(
               minimumSize: const Size(double.infinity, 56),

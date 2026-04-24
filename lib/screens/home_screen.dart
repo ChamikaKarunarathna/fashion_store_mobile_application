@@ -4,6 +4,7 @@ import '../utils/dummy_data.dart';
 import '../widgets/product_card.dart';
 import 'collection_screen.dart';
 import 'product_details_screen.dart';
+import 'cart_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -56,10 +57,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           letterSpacing: 1.0,
                         ),
                   ),
-                  Badge(
-                    label: const Text('3'),
-                    backgroundColor: AppTheme.primaryGreen,
-                    child: const Icon(Icons.shopping_cart_outlined, size: 28),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const CartScreen()),
+                      );
+                    },
+                    child: Badge(
+                      label: const Text('3'),
+                      backgroundColor: AppTheme.primaryGreen,
+                      child: const Icon(Icons.shopping_cart_outlined, size: 28),
+                    ),
                   ),
                 ],
               ),
