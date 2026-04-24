@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/cart_item.dart';
 import '../theme/app_theme.dart';
 import '../utils/dummy_data.dart';
+import 'checkout_screen.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -287,7 +288,10 @@ class _CartScreenState extends State<CartScreen> {
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () {
-                    // Navigate to Checkout
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const CheckoutScreen()),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 56),
