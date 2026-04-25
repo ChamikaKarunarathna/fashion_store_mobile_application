@@ -313,6 +313,11 @@ class _HomeScreenState extends State<HomeScreen> {
               context,
               MaterialPageRoute(builder: (context) => const CartScreen()),
             );
+          } else if (index == 1) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const CollectionScreen()),
+            );
           } else {
             setState(() {
               _bottomNavIndex = index;
