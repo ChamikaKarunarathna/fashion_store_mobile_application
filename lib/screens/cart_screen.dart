@@ -5,6 +5,8 @@ import '../utils/dummy_data.dart';
 import 'checkout_screen.dart';
 import 'home_screen.dart';
 import 'profile_screen.dart';
+import 'collection_screen.dart';
+import 'profile_screen.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -66,7 +68,16 @@ class _CartScreenState extends State<CartScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: GestureDetector(
-          onTap: () => Navigator.pop(context),
+          onTap: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+              );
+            }
+          },
           child: const Icon(Icons.arrow_back_ios, color: AppTheme.textDark, size: 20),
         ),
         title: Text(
@@ -330,6 +341,11 @@ class _CartScreenState extends State<CartScreen> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
+          } else if (index == 1) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const CollectionScreen()),
             );
           } else if (index == 3) {
             Navigator.pushReplacement(
