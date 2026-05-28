@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import 'cart_screen.dart';
 import 'collection_screen.dart';
+import 'orders_screen.dart';
+import 'edit_profile_screen.dart';
+import '../models/app_user.dart';
+import '../services/user_service.dart';
+import '../widgets/cart_badge_icon.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -12,6 +18,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final _authService = AuthService();
+  final _userService = UserService();
   int _bottomNavIndex = 3; // Profile is index 3
 
   void _onBottomNavTapped(int index) {
@@ -59,97 +67,125 @@ class _ProfileScreenState extends State<ProfileScreen> {
           SizedBox(width: 16),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 24),
-            // Profile Info
-            Center(
-              child: Column(
-                children: [
-                  Stack(
+      body: StreamBuilder<AppUser?>(
+        stream: _userService.userStream(_authService.currentUser?.uid ?? ''),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: AppTheme.primaryGreen));
+          }
+
+          final appUser = snapshot.data;
+          final String fullName = appUser?.fullName ?? 'User Name';
+          final String email = appUser?.email ?? 'email@example.com';
+          final String? photoUrl = appUser?.photoUrl;
+
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                const SizedBox(height: 24),
+                // Profile Info
+                Center(
+                  child: Column(
                     children: [
-                      Container(
-                        width: 100,
-                        height: 100,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppTheme.borderGrey,
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(50),
-                          child: Image.asset(
-                            'assets/images/profile_1.png',
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Icon(Icons.person, size: 50, color: AppTheme.textLightGrey);
-                            },
+                      Stack(
+                        children: [
+                          Container(
+                            width: 100,
+                            height: 100,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppTheme.borderGrey,
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(50),
+                              child: photoUrl != null
+                                  ? Image.network(
+                                      photoUrl,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return const Icon(Icons.person, size: 50, color: AppTheme.textLightGrey);
+                                      },
+                                    )
+                                  : const Icon(Icons.person, size: 50, color: AppTheme.textLightGrey),
+                            ),
                           ),
-                        ),
+                          Positioned(
+                            bottom: 4,
+                            right: 4,
+                            child: Container(
+                              width: 16,
+                              height: 16,
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryGreen,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      Positioned(
-                        bottom: 4,
-                        right: 4,
-                        child: Container(
-                          width: 16,
-                          height: 16,
-                          decoration: BoxDecoration(
+                      const SizedBox(height: 16),
+                      Text(
+                        fullName,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        email,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppTheme.textGrey,
+                            ),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          'Member',
+                          style: TextStyle(
                             color: AppTheme.primaryGreen,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Jane Alexander',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'jane.alexander@example.com',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.textGrey,
-                        ),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryGreen.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'Gold Member',
-                      style: TextStyle(
-                        color: AppTheme.primaryGreen,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-            const Divider(color: AppTheme.borderGrey, height: 1),
+                ),
+                const SizedBox(height: 32),
+                const Divider(color: AppTheme.borderGrey, height: 1),
 
-            // Account Settings
-            _buildSectionHeader('ACCOUNT SETTINGS'),
-            _buildListTile(
-              icon: Icons.person_outline,
-              title: 'Edit Profile',
-              subtitle: 'Name, Email, Profile Picture',
-            ),
+                // Account Settings
+                _buildSectionHeader('ACCOUNT SETTINGS'),
+                _buildListTile(
+                  icon: Icons.person_outline,
+                  title: 'Edit Profile',
+                  subtitle: 'Name, Email, Profile Picture',
+                  onTap: () {
+                    if (appUser != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => EditProfileScreen(user: appUser)),
+                      );
+                    }
+                  },
+                ),
             const Divider(color: AppTheme.borderGrey, height: 1),
             _buildListTile(
               icon: Icons.shopping_bag_outlined,
               title: 'Order History',
               subtitle: 'View and track your previous orders',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const OrdersScreen()),
+                );
+              },
             ),
             const Divider(color: AppTheme.borderGrey, height: 1),
             _buildListTile(
@@ -182,7 +218,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
+                  color: Colors.red.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.logout, color: Colors.red),
@@ -196,9 +232,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.red),
-              onTap: () {
-                // Log out logic
-              },
+              onTap: () => _showLogoutConfirmation(context),
             ),
             const Divider(color: AppTheme.borderGrey, height: 1),
 
@@ -215,9 +249,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 32),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _bottomNavIndex,
+      );
+    },
+  ),
+  bottomNavigationBar: BottomNavigationBar(
+    currentIndex: _bottomNavIndex,
         onTap: _onBottomNavTapped,
         type: BottomNavigationBarType.fixed,
         selectedItemColor: AppTheme.primaryGreen,
@@ -237,16 +273,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             label: 'Search',
           ),
           BottomNavigationBarItem(
-            icon: Badge(
-              label: const Text('9'),
-              backgroundColor: Colors.red,
-              child: const Icon(Icons.shopping_cart_outlined),
-            ),
-            activeIcon: Badge(
-              label: const Text('9'),
-              backgroundColor: Colors.red,
-              child: const Icon(Icons.shopping_cart),
-            ),
+            icon: CartBadgeIcon(icon: Icons.shopping_cart_outlined),
+            activeIcon: CartBadgeIcon(icon: Icons.shopping_cart),
             label: 'Cart',
           ),
           const BottomNavigationBarItem(
@@ -257,6 +285,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
+  }
+
+  /// Shows a confirmation dialog before logging out.
+  ///
+  /// On confirmation, signs out via AuthService. The AuthGate
+  /// StreamBuilder in main.dart handles navigation to LoginScreen.
+  Future<void> _showLogoutConfirmation(BuildContext context) async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'Log Out',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: const Text('Are you sure you want to log out?'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: AppTheme.textGrey),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Log Out'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLogout == true && mounted) {
+      await _authService.signOut();
+      if (context.mounted) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
+    }
   }
 
   Widget _buildSectionHeader(String title) {
@@ -281,6 +355,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required IconData icon,
     required String title,
     required String subtitle,
+    VoidCallback? onTap,
   }) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
@@ -288,7 +363,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         width: 48,
         height: 48,
         decoration: BoxDecoration(
-          color: AppTheme.borderGrey.withOpacity(0.3),
+          color: AppTheme.borderGrey.withValues(alpha: 0.3),
           shape: BoxShape.circle,
         ),
         child: Icon(icon, color: AppTheme.primaryGreen),
@@ -312,9 +387,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppTheme.textGrey),
-      onTap: () {
-        // Navigate
-      },
+      onTap: onTap ?? () {},
     );
   }
 }

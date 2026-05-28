@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import '../models/product.dart';
+import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
-import '../utils/dummy_data.dart';
 import '../widgets/product_card.dart';
 import 'collection_screen.dart';
 import 'product_details_screen.dart';
 import 'cart_screen.dart';
 import 'profile_screen.dart';
+import '../widgets/cart_badge_icon.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,15 +17,83 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final _firestoreService = FirestoreService();
+
   int _selectedCategoryIndex = 0;
   int _bottomNavIndex = 0;
+
+  List<String> _categories = ['All'];
+  List<Product> _products = [];
+  bool _isLoadingCategories = true;
+  bool _isLoadingProducts = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+    _loadProducts();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final categories = await _firestoreService.getCategories();
+      if (mounted) {
+        setState(() {
+          _categories = categories;
+          _isLoadingCategories = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingCategories = false);
+      }
+    }
+  }
+
+  Future<void> _loadProducts([String? category]) async {
+    setState(() => _isLoadingProducts = true);
+    try {
+      List<Product> products;
+      if (category == null || category == 'All') {
+        products = await _firestoreService.getProducts();
+      } else {
+        products = await _firestoreService.getProductsByCategory(category);
+      }
+      if (mounted) {
+        setState(() {
+          _products = products;
+          _isLoadingProducts = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingProducts = false);
+      }
+    }
+  }
+
+  void _onCategorySelected(int index) {
+    setState(() => _selectedCategoryIndex = index);
+    _loadProducts(_categories[index]);
+  }
+
+  Future<void> _refreshData() async {
+    await Future.wait([
+      _loadCategories(),
+      _loadProducts(_selectedCategoryIndex < _categories.length ? _categories[_selectedCategoryIndex] : 'All'),
+    ]);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+        child: RefreshIndicator(
+          color: AppTheme.primaryGreen,
+          onRefresh: _refreshData,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -65,11 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         MaterialPageRoute(builder: (context) => const CartScreen()),
                       );
                     },
-                    child: Badge(
-                      label: const Text('3'),
-                      backgroundColor: AppTheme.primaryGreen,
-                      child: const Icon(Icons.shopping_cart_outlined, size: 28),
-                    ),
+                    child: const CartBadgeIcon(icon: Icons.shopping_cart_outlined, size: 28),
                   ),
                 ],
               ),
@@ -84,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         hintText: 'Search fashion, brands...',
                         prefixIcon: const Icon(Icons.search, color: AppTheme.textGrey),
                         filled: true,
-                        fillColor: AppTheme.borderGrey.withOpacity(0.2),
+                        fillColor: AppTheme.borderGrey.withValues(alpha: 0.2),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(30),
                           borderSide: BorderSide.none,
@@ -117,43 +183,72 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 24),
 
+              // TEMPORARY BUTTON
+              Center(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen),
+                  onPressed: () async {
+                    try {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Uploading sample data...')));
+                      await _firestoreService.uploadSampleData();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Upload complete! Please restart the app.')));
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red, duration: const Duration(seconds: 5)));
+                      }
+                    }
+                  },
+                  child: const Text('Add Sample Products (Temp)'),
+                ),
+              ),
+              const SizedBox(height: 24),
+
               // Categories
               SizedBox(
                 height: 36,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: DummyData.categories.length,
-                  itemBuilder: (context, index) {
-                    final isSelected = _selectedCategoryIndex == index;
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedCategoryIndex = index;
-                        });
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.only(right: 12),
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        decoration: BoxDecoration(
-                          color: isSelected ? AppTheme.primaryGreen : Colors.transparent,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: isSelected ? AppTheme.primaryGreen : AppTheme.borderGrey,
+                child: _isLoadingCategories
+                    ? const Center(
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppTheme.primaryGreen,
                           ),
                         ),
-                        child: Center(
-                          child: Text(
-                            DummyData.categories[index],
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: isSelected ? Colors.white : AppTheme.textDark,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      )
+                    : ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _categories.length,
+                        itemBuilder: (context, index) {
+                          final isSelected = _selectedCategoryIndex == index;
+                          return GestureDetector(
+                            onTap: () => _onCategorySelected(index),
+                            child: Container(
+                              margin: const EdgeInsets.only(right: 12),
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              decoration: BoxDecoration(
+                                color: isSelected ? AppTheme.primaryGreen : Colors.transparent,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: isSelected ? AppTheme.primaryGreen : AppTheme.borderGrey,
                                 ),
-                          ),
-                        ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  _categories[index],
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        color: isSelected ? Colors.white : AppTheme.textDark,
+                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                      ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
               ),
               const SizedBox(height: 24),
 
@@ -199,7 +294,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       'Elevate your wardrobe with our latest',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                           ),
                     ),
                     const SizedBox(height: 16),
@@ -269,38 +364,70 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Grid View
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.65,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                ),
-                itemCount: DummyData.trendingProducts.length,
-                itemBuilder: (context, index) {
-                  return ProductCard(
-                    product: DummyData.trendingProducts[index],
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ProductDetailsScreen(
-                            product: DummyData.trendingProducts[index],
-                          ),
+              // Product Grid
+              _isLoadingProducts
+                  ? const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 48.0),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: AppTheme.primaryGreen,
                         ),
-                      );
-                    },
-                  );
-                },
-              ),
+                      ),
+                    )
+                  : _products.isEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 48.0),
+                          child: Center(
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.shopping_bag_outlined,
+                                  size: 48,
+                                  color: AppTheme.textLightGrey,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No products found',
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        color: AppTheme.textGrey,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.65,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                          ),
+                          itemCount: _products.length,
+                          itemBuilder: (context, index) {
+                            return ProductCard(
+                              product: _products[index],
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ProductDetailsScreen(
+                                      product: _products[index],
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
+    ),
+    bottomNavigationBar: BottomNavigationBar(
         currentIndex: _bottomNavIndex,
         onTap: (index) {
           if (index == 3) {
@@ -342,7 +469,8 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Search',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart_outlined),
+            icon: CartBadgeIcon(icon: Icons.shopping_cart_outlined),
+            activeIcon: CartBadgeIcon(icon: Icons.shopping_cart),
             label: 'Cart',
           ),
           BottomNavigationBarItem(

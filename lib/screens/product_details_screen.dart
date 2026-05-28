@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/product.dart';
+import '../models/cart_item.dart';
+import '../services/cart_service.dart';
 import '../theme/app_theme.dart';
-import 'cart_screen.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   final Product product;
@@ -13,15 +16,10 @@ class ProductDetailsScreen extends StatefulWidget {
 }
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
+  final _cartService = CartService();
   int _selectedColorIndex = 0;
   int _selectedSizeIndex = 2; // Default to 'M' for demo
-
-  @override
-  void initState() {
-    super.initState();
-    // Default to green color to match screenshot if possible, else just first color.
-    // In dummy data we will pass specific colors later.
-  }
+  bool _isAddingToCart = false;
 
   @override
   Widget build(BuildContext context) {
@@ -69,21 +67,26 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             Container(
               width: double.infinity,
               height: 400,
-              color: AppTheme.borderGrey.withOpacity(0.3),
+              color: AppTheme.borderGrey.withValues(alpha: 0.3),
               child: Stack(
                 alignment: Alignment.bottomCenter,
                 children: [
                   Center(
-                    child: Image.asset(
-                      widget.product.imagePath,
+                    child: CachedNetworkImage(
+                      imageUrl: widget.product.imageUrl,
                       fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(
-                          Icons.image_outlined,
-                          size: 100,
-                          color: AppTheme.textLightGrey,
-                        );
-                      },
+                      width: double.infinity,
+                      height: 400,
+                      placeholder: (context, url) => const Center(
+                        child: CircularProgressIndicator(
+                          color: AppTheme.primaryGreen,
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Icon(
+                        Icons.image_outlined,
+                        size: 100,
+                        color: AppTheme.textLightGrey,
+                      ),
                     ),
                   ),
                   // Pagination dots
@@ -105,7 +108,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           width: 4,
                           height: 4,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.5),
+                            color: Colors.white.withValues(alpha: 0.5),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -114,7 +117,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           width: 4,
                           height: 4,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.5),
+                            color: Colors.white.withValues(alpha: 0.5),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -147,7 +150,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryGreen.withOpacity(0.1),
+                          color: AppTheme.primaryGreen.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Row(
@@ -173,7 +176,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   Row(
                     children: [
                       Text(
-                        '\$${widget.product.price.toStringAsFixed(2)}',
+                        'Rs. ${widget.product.price.toStringAsFixed(2)}',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: AppTheme.primaryGreen,
@@ -183,7 +186,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       if (widget.product.originalPrice != null) ...[
                         const SizedBox(width: 12),
                         Text(
-                          '\$${widget.product.originalPrice!.toStringAsFixed(2)}',
+                          'Rs. ${widget.product.originalPrice!.toStringAsFixed(2)}',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: AppTheme.textGrey,
                                 decoration: TextDecoration.lineThrough,
@@ -320,7 +323,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
                   const Divider(color: AppTheme.borderGrey),
 
-                  // Description Expandable (Simulated)
+                  // Description Expandable
                   Theme(
                     data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                     child: ExpansionTile(
@@ -393,12 +396,59 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         ),
         child: SafeArea(
           child: ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const CartScreen()),
-              );
-            },
+            onPressed: _isAddingToCart
+                ? null
+                : () async {
+                    final user = FirebaseAuth.instance.currentUser;
+                    if (user == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please log in to add items to your cart.'),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                      return;
+                    }
+
+                    final messenger = ScaffoldMessenger.of(context);
+                    setState(() => _isAddingToCart = true);
+
+                    try {
+                      final cartItem = CartItem(
+                        id: '', // Firestore will generate ID
+                        productId: widget.product.id,
+                        productName: widget.product.name,
+                        productPrice: widget.product.price,
+                        productImageUrl: widget.product.imageUrl,
+                        quantity: 1,
+                        selectedSize: widget.product.sizes[_selectedSizeIndex],
+                        selectedColor: widget.product.colors[_selectedColorIndex],
+                      );
+
+                      await _cartService.addToCart(user.uid, cartItem);
+
+                      if (mounted) {
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Text('Added to cart successfully'),
+                            backgroundColor: AppTheme.primaryGreen,
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Text('Failed to add to cart. Please try again.'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    } finally {
+                      if (mounted) setState(() => _isAddingToCart = false);
+                    }
+                  },
             style: ElevatedButton.styleFrom(
               minimumSize: const Size(double.infinity, 56),
               backgroundColor: AppTheme.primaryGreen,
@@ -406,14 +456,23 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: Text(
-              'ADD TO CART — \$${widget.product.price.toStringAsFixed(2)}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                letterSpacing: 1.0,
-              ),
-            ),
+            child: _isAddingToCart
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : Text(
+                    'ADD TO CART — Rs. ${widget.product.price.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
           ),
         ),
       ),
