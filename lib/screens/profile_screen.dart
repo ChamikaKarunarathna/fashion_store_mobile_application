@@ -9,6 +9,7 @@ import 'edit_profile_screen.dart';
 import '../models/app_user.dart';
 import '../services/user_service.dart';
 import '../widgets/cart_badge_icon.dart';
+import '../main.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -328,7 +329,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (shouldLogout == true && mounted) {
       await _authService.signOut();
       if (context.mounted) {
-        Navigator.of(context).popUntil((route) => route.isFirst);
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const AuthGate()),
+          (route) => false,
+        );
       }
     }
   }
