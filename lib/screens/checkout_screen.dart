@@ -45,7 +45,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   Expanded(
                     child: Container(
                       height: 2,
-                      color: AppTheme.primaryGreen.withOpacity(0.3),
+                      color: AppTheme.primaryGreen.withValues(alpha: 0.3),
                     ),
                   ),
                   _buildStep(2, 'PAYMENT', isActive: false),
@@ -196,7 +196,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryGreen.withOpacity(0.05),
+                      color: AppTheme.primaryGreen.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -365,7 +365,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: isActive ? AppTheme.primaryGreen : AppTheme.borderGrey.withOpacity(0.5),
+            color: isActive ? AppTheme.primaryGreen : AppTheme.borderGrey.withValues(alpha: 0.5),
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -409,9 +409,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: AppTheme.borderGrey.withOpacity(0.2),
+            color: AppTheme.borderGrey.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppTheme.borderGrey.withOpacity(0.5)),
+            border: Border.all(color: AppTheme.borderGrey.withValues(alpha: 0.5)),
           ),
           child: Row(
             children: [
@@ -463,7 +463,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppTheme.borderGrey.withOpacity(0.3),
+                color: AppTheme.borderGrey.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon, color: AppTheme.textDark, size: 24),

@@ -4,7 +4,6 @@ import '../theme/app_theme.dart';
 import '../utils/dummy_data.dart';
 import 'checkout_screen.dart';
 import 'home_screen.dart';
-import 'profile_screen.dart';
 import 'collection_screen.dart';
 import 'profile_screen.dart';
 
@@ -138,13 +137,13 @@ class _CartScreenState extends State<CartScreen> {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: AppTheme.borderGrey.withOpacity(0.3),
+                        color: AppTheme.borderGrey.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Image.asset(
-                          item.product.imagePath,
+                          item.product.imageUrl,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return const Icon(Icons.image_outlined, color: AppTheme.textLightGrey);
@@ -183,7 +182,7 @@ class _CartScreenState extends State<CartScreen> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.borderGrey.withOpacity(0.3),
+                                  color: AppTheme.borderGrey.withValues(alpha: 0.3),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
@@ -218,7 +217,7 @@ class _CartScreenState extends State<CartScreen> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.borderGrey.withOpacity(0.3),
+                                  color: AppTheme.borderGrey.withValues(alpha: 0.3),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Row(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../models/product.dart';
 import '../theme/app_theme.dart';
 
@@ -26,23 +27,31 @@ class ProductCard extends StatelessWidget {
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: AppTheme.borderGrey.withOpacity(0.3),
+                    color: AppTheme.borderGrey.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
-                      product.imagePath,
+                    child: CachedNetworkImage(
+                      imageUrl: product.imageUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Center(
-                          child: Icon(
-                            Icons.image_outlined,
-                            color: AppTheme.textLightGrey,
-                            size: 40,
+                      placeholder: (context, url) => const Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppTheme.primaryGreen,
                           ),
-                        );
-                      },
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Center(
+                        child: Icon(
+                          Icons.image_outlined,
+                          color: AppTheme.textLightGrey,
+                          size: 40,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -58,7 +67,7 @@ class ProductCard extends StatelessWidget {
                     child: Icon(
                       product.isFavorite ? Icons.favorite : Icons.favorite_border,
                       size: 16,
-                      color: product.isFavorite ? AppTheme.primaryGreen : AppTheme.textGrey, // changed favorite color to match screenshot (green border/fill)
+                      color: product.isFavorite ? AppTheme.primaryGreen : AppTheme.textGrey,
                     ),
                   ),
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../models/product.dart';
 import '../theme/app_theme.dart';
 import 'cart_screen.dart';
@@ -15,13 +16,6 @@ class ProductDetailsScreen extends StatefulWidget {
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   int _selectedColorIndex = 0;
   int _selectedSizeIndex = 2; // Default to 'M' for demo
-
-  @override
-  void initState() {
-    super.initState();
-    // Default to green color to match screenshot if possible, else just first color.
-    // In dummy data we will pass specific colors later.
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,21 +63,26 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             Container(
               width: double.infinity,
               height: 400,
-              color: AppTheme.borderGrey.withOpacity(0.3),
+              color: AppTheme.borderGrey.withValues(alpha: 0.3),
               child: Stack(
                 alignment: Alignment.bottomCenter,
                 children: [
                   Center(
-                    child: Image.asset(
-                      widget.product.imagePath,
+                    child: CachedNetworkImage(
+                      imageUrl: widget.product.imageUrl,
                       fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(
-                          Icons.image_outlined,
-                          size: 100,
-                          color: AppTheme.textLightGrey,
-                        );
-                      },
+                      width: double.infinity,
+                      height: 400,
+                      placeholder: (context, url) => const Center(
+                        child: CircularProgressIndicator(
+                          color: AppTheme.primaryGreen,
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Icon(
+                        Icons.image_outlined,
+                        size: 100,
+                        color: AppTheme.textLightGrey,
+                      ),
                     ),
                   ),
                   // Pagination dots
@@ -105,7 +104,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           width: 4,
                           height: 4,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.5),
+                            color: Colors.white.withValues(alpha: 0.5),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -114,7 +113,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           width: 4,
                           height: 4,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.5),
+                            color: Colors.white.withValues(alpha: 0.5),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -147,7 +146,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryGreen.withOpacity(0.1),
+                          color: AppTheme.primaryGreen.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Row(
@@ -320,7 +319,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
                   const Divider(color: AppTheme.borderGrey),
 
-                  // Description Expandable (Simulated)
+                  // Description Expandable
                   Theme(
                     data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                     child: ExpansionTile(
