@@ -183,28 +183,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 24),
 
-              // TEMPORARY BUTTON
-              Center(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen),
-                  onPressed: () async {
-                    try {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Uploading sample data...')));
-                      await _firestoreService.uploadSampleData();
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Upload complete! Please restart the app.')));
-                      }
-                    } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red, duration: const Duration(seconds: 5)));
-                      }
-                    }
-                  },
-                  child: const Text('Add Sample Products (Temp)'),
-                ),
-              ),
-              const SizedBox(height: 24),
-
               // Categories
               SizedBox(
                 height: 36,
