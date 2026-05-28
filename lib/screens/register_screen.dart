@@ -2,46 +2,61 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
-import 'register_screen.dart';
 
-/// Login screen with Firebase Authentication.
+/// Registration screen for new user sign-up.
 ///
-/// Provides email/password sign-in, forgot password via Firebase,
-/// and navigation to the registration screen.
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+/// Collects full name, email, password, and confirm password.
+/// Creates a Firebase Auth account and a Firestore user profile.
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _authService = AuthService();
 
   bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
 
   @override
   void dispose() {
+    _fullNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  Future<void> _signIn() async {
+  Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
     try {
-      await _authService.signIn(
+      await _authService.register(
         _emailController.text,
         _passwordController.text,
+        _fullNameController.text,
       );
-      // On success, auth state listener in main.dart will navigate to Home.
+
+      if (mounted) {
+        // Registration successful — auth state listener in main.dart
+        // will automatically navigate to HomeScreen.
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account created successfully!'),
+            backgroundColor: AppTheme.primaryGreen,
+          ),
+        );
+      }
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -65,50 +80,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _forgotPassword() async {
-    final email = _emailController.text.trim();
-
-    if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter your email address first.'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    try {
-      await _authService.sendPasswordResetEmail(email);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Password reset email sent. Check your inbox.'),
-            backgroundColor: AppTheme.primaryGreen,
-          ),
-        );
-      }
-    } on FirebaseAuthException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AuthService.getErrorMessage(e)),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not send reset email. Please try again.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -120,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 40),
+                const SizedBox(height: 24),
                 // Logo
                 Center(
                   child: Container(
@@ -136,7 +107,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         'assets/images/chamixmart-logo.png',
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
-                          // Fallback icon if logo is not placed yet
                           return const Icon(
                             Icons.flash_on,
                             color: Colors.white,
@@ -151,13 +121,43 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Subtitle
                 Center(
                   child: Text(
-                    'ELEVATE YOUR STYLE',
+                    'CREATE YOUR ACCOUNT',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           letterSpacing: 1.2,
                         ),
                   ),
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 40),
+
+                // Full Name Field
+                Text(
+                  'FULL NAME',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        fontSize: 12,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _fullNameController,
+                  keyboardType: TextInputType.name,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: const InputDecoration(
+                    hintText: 'John Doe',
+                    prefixIcon: Icon(Icons.person_outline, color: AppTheme.textGrey),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter your full name';
+                    }
+                    if (value.trim().length < 2) {
+                      return 'Name must be at least 2 characters';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
 
                 // Email Field
                 Text(
@@ -187,40 +187,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
 
-                // Password Field Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'PASSWORD',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
-                            fontSize: 12,
-                          ),
-                    ),
-                    TextButton(
-                      onPressed: _forgotPassword,
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: const Size(0, 0),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                // Password Field
+                Text(
+                  'PASSWORD',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        fontSize: 12,
                       ),
-                      child: Text(
-                        'Forgot Password?',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.textDark,
-                            ),
-                      ),
-                    ),
-                  ],
                 ),
                 const SizedBox(height: 8),
-                // Password Field
                 TextFormField(
                   controller: _passwordController,
                   obscureText: !_isPasswordVisible,
@@ -233,15 +211,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         color: AppTheme.textGrey,
                       ),
                       onPressed: () {
-                        setState(() {
-                          _isPasswordVisible = !_isPasswordVisible;
-                        });
+                        setState(() => _isPasswordVisible = !_isPasswordVisible);
                       },
                     ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
+                      return 'Please enter a password';
                     }
                     if (value.length < 6) {
                       return 'Password must be at least 6 characters';
@@ -249,11 +225,49 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ),
+                const SizedBox(height: 20),
+
+                // Confirm Password Field
+                Text(
+                  'CONFIRM PASSWORD',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        fontSize: 12,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _confirmPasswordController,
+                  obscureText: !_isConfirmPasswordVisible,
+                  decoration: InputDecoration(
+                    hintText: '••••••••',
+                    prefixIcon: const Icon(Icons.lock_outline, color: AppTheme.textGrey),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isConfirmPasswordVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                        color: AppTheme.textGrey,
+                      ),
+                      onPressed: () {
+                        setState(() => _isConfirmPasswordVisible = !_isConfirmPasswordVisible);
+                      },
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please confirm your password';
+                    }
+                    if (value != _passwordController.text) {
+                      return 'Passwords do not match';
+                    }
+                    return null;
+                  },
+                ),
                 const SizedBox(height: 32),
 
-                // Sign In Button
+                // Create Account Button
                 ElevatedButton(
-                  onPressed: _isLoading ? null : _signIn,
+                  onPressed: _isLoading ? null : _register,
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,
@@ -266,41 +280,38 @@ class _LoginScreenState extends State<LoginScreen> {
                       : const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text('SIGN IN'),
+                            Text('CREATE ACCOUNT'),
                             SizedBox(width: 8),
                             Icon(Icons.arrow_forward, size: 20),
                           ],
                         ),
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 32),
 
-                // Sign Up
+                // Already have account
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Don't have an account? ",
+                      'Already have an account? ',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     GestureDetector(
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const RegisterScreen()),
-                        );
+                        Navigator.pop(context);
                       },
                       child: Text(
-                        'Sign Up',
+                        'Sign In',
                         style: Theme.of(context).textTheme.labelLarge,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 32),
 
                 // Footer
                 Text(
-                  "By continuing, you agree to CK Mart's\nTerms of Service and Privacy Policy.",
+                  "By creating an account, you agree to CK Mart's\nTerms of Service and Privacy Policy.",
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontSize: 11,

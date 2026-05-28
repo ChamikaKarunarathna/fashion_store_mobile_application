@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import 'cart_screen.dart';
@@ -12,6 +13,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final _authService = AuthService();
   int _bottomNavIndex = 3; // Profile is index 3
 
   void _onBottomNavTapped(int index) {
@@ -196,9 +198,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.red),
-              onTap: () {
-                // Log out logic
-              },
+              onTap: () => _showLogoutConfirmation(context),
             ),
             const Divider(color: AppTheme.borderGrey, height: 1),
 
@@ -257,6 +257,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
+  }
+
+  /// Shows a confirmation dialog before logging out.
+  ///
+  /// On confirmation, signs out via AuthService. The AuthGate
+  /// StreamBuilder in main.dart handles navigation to LoginScreen.
+  Future<void> _showLogoutConfirmation(BuildContext context) async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'Log Out',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: const Text('Are you sure you want to log out?'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: AppTheme.textGrey),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Log Out'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLogout == true && mounted) {
+      await _authService.signOut();
+      // AuthGate in main.dart will automatically navigate to LoginScreen
+    }
   }
 
   Widget _buildSectionHeader(String title) {
