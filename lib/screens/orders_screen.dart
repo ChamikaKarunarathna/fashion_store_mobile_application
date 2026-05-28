@@ -178,7 +178,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         ),
                   ),
                   Text(
-                    '\$${(item.productPrice * item.quantity).toStringAsFixed(2)}',
+                    'Rs. ${(item.productPrice * item.quantity).toStringAsFixed(2)}',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
@@ -199,7 +199,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     ),
               ),
               Text(
-                '\$${order.total.toStringAsFixed(2)}',
+                'Rs. ${order.total.toStringAsFixed(2)}',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppTheme.primaryGreen,

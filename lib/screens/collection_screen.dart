@@ -58,7 +58,13 @@ class _CollectionScreenState extends State<CollectionScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => const HomeScreen()),
+                        (route) => false,
+                      );
+                    },
                     child: const Icon(Icons.arrow_back_ios, size: 20),
                   ),
                   Text(

@@ -176,7 +176,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   Row(
                     children: [
                       Text(
-                        '\$${widget.product.price.toStringAsFixed(2)}',
+                        'Rs. ${widget.product.price.toStringAsFixed(2)}',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: AppTheme.primaryGreen,
@@ -186,7 +186,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       if (widget.product.originalPrice != null) ...[
                         const SizedBox(width: 12),
                         Text(
-                          '\$${widget.product.originalPrice!.toStringAsFixed(2)}',
+                          'Rs. ${widget.product.originalPrice!.toStringAsFixed(2)}',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: AppTheme.textGrey,
                                 decoration: TextDecoration.lineThrough,
@@ -466,7 +466,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     ),
                   )
                 : Text(
-                    'ADD TO CART — \$${widget.product.price.toStringAsFixed(2)}',
+                    'ADD TO CART — Rs. ${widget.product.price.toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,

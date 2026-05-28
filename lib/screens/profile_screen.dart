@@ -327,7 +327,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (shouldLogout == true && mounted) {
       await _authService.signOut();
-      // AuthGate in main.dart will automatically navigate to LoginScreen
+      if (context.mounted) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
     }
   }
 

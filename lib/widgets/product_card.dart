@@ -121,7 +121,7 @@ class ProductCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                '\$${product.price.toStringAsFixed(2)}',
+                'Rs. ${product.price.toStringAsFixed(2)}',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppTheme.primaryGreen,
@@ -131,7 +131,7 @@ class ProductCard extends StatelessWidget {
               if (product.originalPrice != null) ...[
                 const SizedBox(width: 8),
                 Text(
-                  '\$${product.originalPrice!.toStringAsFixed(2)}',
+                  'Rs. ${product.originalPrice!.toStringAsFixed(2)}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppTheme.textLightGrey,
                         fontSize: 12,

@@ -271,9 +271,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           padding: EdgeInsets.symmetric(vertical: 16.0),
                           child: Divider(color: AppTheme.borderGrey),
                         ),
-                        _buildSummaryRow('Subtotal', '\$${widget.subtotal.toStringAsFixed(2)}'),
+                        _buildSummaryRow('Subtotal', 'Rs. ${widget.subtotal.toStringAsFixed(2)}'),
                         const SizedBox(height: 8),
-                        _buildSummaryRow('Standard Delivery', '\$${widget.deliveryFee.toStringAsFixed(2)}'),
+                        _buildSummaryRow('Standard Delivery', 'Rs. ${widget.deliveryFee.toStringAsFixed(2)}'),
                         const SizedBox(height: 16),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -285,7 +285,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   ),
                             ),
                             Text(
-                              '\$${widget.total.toStringAsFixed(2)}',
+                              'Rs. ${widget.total.toStringAsFixed(2)}',
                               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: AppTheme.primaryGreen,

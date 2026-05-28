@@ -256,7 +256,7 @@ class _CartScreenState extends State<CartScreen> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    '\$${item.productPrice.toStringAsFixed(2)}',
+                                    'Rs. ${item.productPrice.toStringAsFixed(2)}',
                                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 14,
@@ -313,7 +313,7 @@ class _CartScreenState extends State<CartScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Subtotal', style: Theme.of(context).textTheme.bodyMedium),
-                        Text('\$${subtotal.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                        Text('Rs. ${subtotal.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold)),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -321,7 +321,7 @@ class _CartScreenState extends State<CartScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Delivery', style: Theme.of(context).textTheme.bodyMedium),
-                        Text('\$${_deliveryFee.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                        Text('Rs. ${_deliveryFee.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold)),
                       ],
                     ),
                     const Padding(
@@ -339,7 +339,7 @@ class _CartScreenState extends State<CartScreen> {
                               ),
                         ),
                         Text(
-                          '\$${total.toStringAsFixed(2)}',
+                          'Rs. ${total.toStringAsFixed(2)}',
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: AppTheme.primaryGreen,

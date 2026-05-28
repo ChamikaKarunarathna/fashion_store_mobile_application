@@ -77,12 +77,23 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadProducts(_categories[index]);
   }
 
+  Future<void> _refreshData() async {
+    await Future.wait([
+      _loadCategories(),
+      _loadProducts(_selectedCategoryIndex < _categories.length ? _categories[_selectedCategoryIndex] : 'All'),
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+        child: RefreshIndicator(
+          color: AppTheme.primaryGreen,
+          onRefresh: _refreshData,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -169,6 +180,28 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 24),
+
+              // TEMPORARY BUTTON
+              Center(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen),
+                  onPressed: () async {
+                    try {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Uploading sample data...')));
+                      await _firestoreService.uploadSampleData();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Upload complete! Please restart the app.')));
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red, duration: const Duration(seconds: 5)));
+                      }
+                    }
+                  },
+                  child: const Text('Add Sample Products (Temp)'),
+                ),
               ),
               const SizedBox(height: 24),
 
@@ -393,7 +426,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
+    ),
+    bottomNavigationBar: BottomNavigationBar(
         currentIndex: _bottomNavIndex,
         onTap: (index) {
           if (index == 3) {
