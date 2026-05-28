@@ -1,15 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../models/app_order.dart';
+import '../models/cart_item.dart';
+import '../services/order_service.dart';
 import '../theme/app_theme.dart';
+import 'home_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
-  const CheckoutScreen({super.key});
+  final List<CartItem> cartItems;
+  final double subtotal;
+  final double deliveryFee;
+  final double total;
+
+  const CheckoutScreen({
+    super.key,
+    required this.cartItems,
+    required this.subtotal,
+    required this.deliveryFee,
+    required this.total,
+  });
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
+  final _orderService = OrderService();
   int _selectedPaymentMethod = 0; // 0: Card, 1: Apple Pay, 2: PayPal
+  bool _isPlacingOrder = false;
 
   @override
   Widget build(BuildContext context) {
@@ -215,7 +234,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  '3 products selected',
+                                  '${widget.cartItems.length} products selected',
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                         color: AppTheme.textGrey,
                                       ),
@@ -228,18 +247,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               height: 36,
                               child: Stack(
                                 children: [
-                                  Positioned(
-                                    right: 0,
-                                    child: _buildStackedImage('assets/images/product_4.png'), // Replace with actual placeholder later if needed
-                                  ),
-                                  Positioned(
-                                    right: 20,
-                                    child: _buildStackedImage('assets/images/cart_2.png'),
-                                  ),
-                                  Positioned(
-                                    right: 40,
-                                    child: _buildStackedImage('assets/images/cart_1.png'),
-                                  ),
+                                  if (widget.cartItems.length > 2)
+                                    Positioned(
+                                      right: 0,
+                                      child: _buildStackedImage(widget.cartItems[2].productImageUrl),
+                                    ),
+                                  if (widget.cartItems.length > 1)
+                                    Positioned(
+                                      right: 20,
+                                      child: _buildStackedImage(widget.cartItems[1].productImageUrl),
+                                    ),
+                                  if (widget.cartItems.isNotEmpty)
+                                    Positioned(
+                                      right: 40,
+                                      child: _buildStackedImage(widget.cartItems[0].productImageUrl),
+                                    ),
                                 ],
                               ),
                             ),
@@ -249,11 +271,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           padding: EdgeInsets.symmetric(vertical: 16.0),
                           child: Divider(color: AppTheme.borderGrey),
                         ),
-                        _buildSummaryRow('Subtotal', '\$419.00'),
+                        _buildSummaryRow('Subtotal', '\$${widget.subtotal.toStringAsFixed(2)}'),
                         const SizedBox(height: 8),
-                        _buildSummaryRow('Standard Delivery', 'FREE'),
-                        const SizedBox(height: 8),
-                        _buildSummaryRow('Estimated Tax', '\$33.52'),
+                        _buildSummaryRow('Standard Delivery', '\$${widget.deliveryFee.toStringAsFixed(2)}'),
                         const SizedBox(height: 16),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -265,7 +285,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   ),
                             ),
                             Text(
-                              '\$452.52',
+                              '\$${widget.total.toStringAsFixed(2)}',
                               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: AppTheme.primaryGreen,
@@ -326,9 +346,58 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () {
-                  // Place order logic
-                },
+                onPressed: _isPlacingOrder
+                    ? null
+                    : () async {
+                        final user = FirebaseAuth.instance.currentUser;
+                        if (user == null) return;
+
+                        final messenger = ScaffoldMessenger.of(context);
+                        final navigator = Navigator.of(context);
+
+                        setState(() => _isPlacingOrder = true);
+
+                        try {
+                          final order = AppOrder(
+                            id: '',
+                            userId: user.uid,
+                            items: widget.cartItems,
+                            subtotal: widget.subtotal,
+                            deliveryFee: widget.deliveryFee,
+                            total: widget.total,
+                            status: 'Order Placed',
+                            deliveryAddress: '1/123 Dampagoda, Baddegama 80200', // Mock
+                            createdAt: DateTime.now(),
+                          );
+
+                          await _orderService.placeOrder(user.uid, order);
+
+                          if (mounted) {
+                            messenger.showSnackBar(
+                              const SnackBar(
+                                content: Text('Order placed successfully!'),
+                                backgroundColor: AppTheme.primaryGreen,
+                              ),
+                            );
+
+                            navigator.pushAndRemoveUntil(
+                              MaterialPageRoute(builder: (context) => const HomeScreen()),
+                              (route) => false,
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            messenger.showSnackBar(
+                              const SnackBar(
+                                content: Text('Failed to place order.'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        } finally {
+                          if (mounted) setState(() => _isPlacingOrder = false);
+                        }
+                      },
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 56),
                   backgroundColor: AppTheme.primaryGreen,
@@ -336,20 +405,29 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Place Order',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                child: _isPlacingOrder
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Place Order',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Icon(Icons.arrow_forward_ios, size: 14),
+                        ],
                       ),
-                    ),
-                    SizedBox(width: 8),
-                    Icon(Icons.arrow_forward_ios, size: 14),
-                  ],
-                ),
               ),
             ],
           ),
@@ -497,7 +575,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildStackedImage(String path) {
+  Widget _buildStackedImage(String url) {
     return Container(
       width: 36,
       height: 36,
@@ -507,12 +585,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(18),
-        child: Image.asset(
-          path,
+        child: CachedNetworkImage(
+          imageUrl: url,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Container(color: AppTheme.borderGrey);
-          },
+          placeholder: (context, url) => Container(color: AppTheme.borderGrey),
+          errorWidget: (context, url, error) => Container(color: AppTheme.borderGrey),
         ),
       ),
     );

@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import 'cart_screen.dart';
 import 'collection_screen.dart';
+import 'orders_screen.dart';
 import '../widgets/cart_badge_icon.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -153,6 +154,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icons.shopping_bag_outlined,
               title: 'Order History',
               subtitle: 'View and track your previous orders',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const OrdersScreen()),
+                );
+              },
             ),
             const Divider(color: AppTheme.borderGrey, height: 1),
             _buildListTile(
@@ -318,6 +325,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required IconData icon,
     required String title,
     required String subtitle,
+    VoidCallback? onTap,
   }) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
@@ -349,9 +357,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppTheme.textGrey),
-      onTap: () {
-        // Navigate
-      },
+      onTap: onTap ?? () {},
     );
   }
 }

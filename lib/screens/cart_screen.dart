@@ -351,9 +351,17 @@ class _CartScreenState extends State<CartScreen> {
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: () {
+                        if (items.isEmpty) return;
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const CheckoutScreen()),
+                          MaterialPageRoute(
+                            builder: (context) => CheckoutScreen(
+                              cartItems: items,
+                              subtotal: subtotal,
+                              deliveryFee: _deliveryFee,
+                              total: total,
+                            ),
+                          ),
                         );
                       },
                       style: ElevatedButton.styleFrom(
