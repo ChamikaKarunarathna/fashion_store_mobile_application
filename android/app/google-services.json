@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "377893135793",
+    "project_id": "ck-mart-fashion-store",
+    "storage_bucket": "ck-mart-fashion-store.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:377893135793:android:1de355033c14ea025c4990",
+        "android_client_info": {
+          "package_name": "com.example.fashion_store_mobile_application"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZ9C3Oczy_KrCEfEn93cKV62qGtdwQO5Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
