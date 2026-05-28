@@ -7,6 +7,7 @@ import 'collection_screen.dart';
 import 'product_details_screen.dart';
 import 'cart_screen.dart';
 import 'profile_screen.dart';
+import '../widgets/cart_badge_icon.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -123,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         MaterialPageRoute(builder: (context) => const CartScreen()),
                       );
                     },
-                    child: const Icon(Icons.shopping_cart_outlined, size: 28),
+                    child: const CartBadgeIcon(icon: Icons.shopping_cart_outlined, size: 28),
                   ),
                 ],
               ),
@@ -434,7 +435,8 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Search',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart_outlined),
+            icon: CartBadgeIcon(icon: Icons.shopping_cart_outlined),
+            activeIcon: CartBadgeIcon(icon: Icons.shopping_cart),
             label: 'Cart',
           ),
           BottomNavigationBarItem(

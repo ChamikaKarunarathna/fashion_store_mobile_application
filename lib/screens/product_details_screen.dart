@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/product.dart';
+import '../models/cart_item.dart';
+import '../services/cart_service.dart';
 import '../theme/app_theme.dart';
-import 'cart_screen.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   final Product product;
@@ -14,8 +16,10 @@ class ProductDetailsScreen extends StatefulWidget {
 }
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
+  final _cartService = CartService();
   int _selectedColorIndex = 0;
   int _selectedSizeIndex = 2; // Default to 'M' for demo
+  bool _isAddingToCart = false;
 
   @override
   Widget build(BuildContext context) {
@@ -392,12 +396,59 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         ),
         child: SafeArea(
           child: ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const CartScreen()),
-              );
-            },
+            onPressed: _isAddingToCart
+                ? null
+                : () async {
+                    final user = FirebaseAuth.instance.currentUser;
+                    if (user == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please log in to add items to your cart.'),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                      return;
+                    }
+
+                    final messenger = ScaffoldMessenger.of(context);
+                    setState(() => _isAddingToCart = true);
+
+                    try {
+                      final cartItem = CartItem(
+                        id: '', // Firestore will generate ID
+                        productId: widget.product.id,
+                        productName: widget.product.name,
+                        productPrice: widget.product.price,
+                        productImageUrl: widget.product.imageUrl,
+                        quantity: 1,
+                        selectedSize: widget.product.sizes[_selectedSizeIndex],
+                        selectedColor: widget.product.colors[_selectedColorIndex],
+                      );
+
+                      await _cartService.addToCart(user.uid, cartItem);
+
+                      if (mounted) {
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Text('Added to cart successfully'),
+                            backgroundColor: AppTheme.primaryGreen,
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Text('Failed to add to cart. Please try again.'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    } finally {
+                      if (mounted) setState(() => _isAddingToCart = false);
+                    }
+                  },
             style: ElevatedButton.styleFrom(
               minimumSize: const Size(double.infinity, 56),
               backgroundColor: AppTheme.primaryGreen,
@@ -405,14 +456,23 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: Text(
-              'ADD TO CART — \$${widget.product.price.toStringAsFixed(2)}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                letterSpacing: 1.0,
-              ),
-            ),
+            child: _isAddingToCart
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : Text(
+                    'ADD TO CART — \$${widget.product.price.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
           ),
         ),
       ),

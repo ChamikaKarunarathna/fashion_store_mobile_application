@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import 'cart_screen.dart';
 import 'collection_screen.dart';
+import '../widgets/cart_badge_icon.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -237,16 +238,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             label: 'Search',
           ),
           BottomNavigationBarItem(
-            icon: Badge(
-              label: const Text('9'),
-              backgroundColor: Colors.red,
-              child: const Icon(Icons.shopping_cart_outlined),
-            ),
-            activeIcon: Badge(
-              label: const Text('9'),
-              backgroundColor: Colors.red,
-              child: const Icon(Icons.shopping_cart),
-            ),
+            icon: CartBadgeIcon(icon: Icons.shopping_cart_outlined),
+            activeIcon: CartBadgeIcon(icon: Icons.shopping_cart),
             label: 'Cart',
           ),
           const BottomNavigationBarItem(

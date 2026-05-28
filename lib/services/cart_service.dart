@@ -1,12 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/cart_item.dart';
 
 /// Service for managing the user's shopping cart in Firestore.
 ///
 /// Cart items are stored as a subcollection under each user's document:
 /// `users/{userId}/cart/{cartItemId}`
-///
-/// Each cart item stores a product ID reference, quantity,
-/// selected size, and selected color.
 class CartService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -18,44 +16,34 @@ class CartService {
   /// Returns a real-time stream of the user's cart items.
   ///
   /// Cart items are ordered by the time they were added.
-  Stream<QuerySnapshot> cartStream(String userId) {
+  Stream<List<CartItem>> cartStream(String userId) {
     return _cartCollection(userId)
         .orderBy('addedAt', descending: false)
-        .snapshots();
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => CartItem.fromFirestore(doc)).toList());
   }
 
   /// Adds a product to the user's cart.
   ///
   /// If a cart item with the same productId, size, and color already exists,
   /// its quantity is incremented instead of creating a duplicate.
-  Future<void> addToCart({
-    required String userId,
-    required String productId,
-    required int quantity,
-    required String selectedSize,
-    required String selectedColor,
-  }) async {
+  Future<void> addToCart(String userId, CartItem item) async {
     // Check for existing item with same product, size, and color
     final existing = await _cartCollection(userId)
-        .where('productId', isEqualTo: productId)
-        .where('selectedSize', isEqualTo: selectedSize)
-        .where('selectedColor', isEqualTo: selectedColor)
+        .where('productId', isEqualTo: item.productId)
+        .where('selectedSize', isEqualTo: item.selectedSize)
+        .where('selectedColor', isEqualTo: item.toMap()['selectedColor']) // use string hex
         .get();
 
     if (existing.docs.isNotEmpty) {
       // Increment quantity of existing item
       final doc = existing.docs.first;
       final currentQty = doc['quantity'] as int;
-      await doc.reference.update({'quantity': currentQty + quantity});
+      await doc.reference.update({'quantity': currentQty + item.quantity});
     } else {
       // Add new cart item
-      await _cartCollection(userId).add({
-        'productId': productId,
-        'quantity': quantity,
-        'selectedSize': selectedSize,
-        'selectedColor': selectedColor,
-        'addedAt': FieldValue.serverTimestamp(),
-      });
+      await _cartCollection(userId).add(item.toMap());
     }
   }
 

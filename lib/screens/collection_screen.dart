@@ -7,6 +7,7 @@ import 'product_details_screen.dart';
 import 'home_screen.dart';
 import 'cart_screen.dart';
 import 'profile_screen.dart';
+import '../widgets/cart_badge_icon.dart';
 
 class CollectionScreen extends StatefulWidget {
   const CollectionScreen({super.key});
@@ -260,7 +261,8 @@ class _CollectionScreenState extends State<CollectionScreen> {
             label: 'Search',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart_outlined),
+            icon: CartBadgeIcon(icon: Icons.shopping_cart_outlined),
+            activeIcon: CartBadgeIcon(icon: Icons.shopping_cart),
             label: 'Cart',
           ),
           BottomNavigationBarItem(
