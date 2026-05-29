@@ -21,8 +21,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   int _selectedCategoryIndex = 0;
   int _bottomNavIndex = 0;
+  final TextEditingController _searchController = TextEditingController();
 
   List<String> _categories = ['All'];
+  List<Product> _allProducts = [];
   List<Product> _products = [];
   bool _isLoadingCategories = true;
   bool _isLoadingProducts = true;
@@ -32,6 +34,17 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _loadCategories();
     _loadProducts();
+    _searchController.addListener(() {
+      setState(() {
+        _filterProducts();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadCategories() async {
@@ -61,7 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       if (mounted) {
         setState(() {
-          _products = products;
+          _allProducts = products;
+          _filterProducts();
           _isLoadingProducts = false;
         });
       }
@@ -69,6 +83,17 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) {
         setState(() => _isLoadingProducts = false);
       }
+    }
+  }
+
+  void _filterProducts() {
+    final query = _searchController.text.toLowerCase();
+    if (query.isEmpty) {
+      _products = List.from(_allProducts);
+    } else {
+      _products = _allProducts
+          .where((p) => p.name.toLowerCase().contains(query))
+          .toList();
     }
   }
 
@@ -146,6 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Expanded(
                     child: TextField(
+                      controller: _searchController,
                       decoration: InputDecoration(
                         hintText: 'Search fashion, brands...',
                         prefixIcon: const Icon(Icons.search, color: AppTheme.textGrey),
@@ -164,6 +190,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           borderSide: BorderSide.none,
                         ),
                         contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, color: AppTheme.textGrey, size: 20),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  FocusScope.of(context).unfocus();
+                                },
+                              )
+                            : null,
                       ),
                     ),
                   ),
