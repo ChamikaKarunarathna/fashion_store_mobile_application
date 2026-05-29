@@ -9,14 +9,14 @@ import 'cart_screen.dart';
 import 'profile_screen.dart';
 import '../widgets/cart_badge_icon.dart';
 
-class CollectionScreen extends StatefulWidget {
-  const CollectionScreen({super.key});
+class ShopScreen extends StatefulWidget {
+  const ShopScreen({super.key});
 
   @override
-  State<CollectionScreen> createState() => _CollectionScreenState();
+  State<ShopScreen> createState() => _ShopScreenState();
 }
 
-class _CollectionScreenState extends State<CollectionScreen> {
+class _ShopScreenState extends State<ShopScreen> {
   final _firestoreService = FirestoreService();
 
   int _bottomNavIndex = 1; // Default to Search as per screenshot
@@ -68,7 +68,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                     child: const Icon(Icons.arrow_back_ios, size: 20),
                   ),
                   Text(
-                    'COLLECTION',
+                    'SHOP',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.0,
@@ -205,7 +205,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                                 Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                                   child: Text(
-                                    'END OF COLLECTION',
+                                    'END OF SHOP',
                                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                           color: AppTheme.textLightGrey,
                                           fontWeight: FontWeight.bold,
@@ -263,8 +263,9 @@ class _CollectionScreenState extends State<CollectionScreen> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.search_outlined),
-            label: 'Search',
+            icon: Icon(Icons.storefront_outlined),
+            activeIcon: Icon(Icons.storefront),
+            label: 'Shop',
           ),
           BottomNavigationBarItem(
             icon: CartBadgeIcon(icon: Icons.shopping_cart_outlined),

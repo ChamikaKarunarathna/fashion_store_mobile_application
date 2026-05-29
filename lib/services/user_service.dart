@@ -1,6 +1,4 @@
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import '../models/app_user.dart';
 
 class UserService {
@@ -18,14 +16,5 @@ class UserService {
   /// Update a user's profile information
   Future<void> updateUser(String userId, AppUser user) async {
     await _firestore.collection('users').doc(userId).update(user.toMap());
-  }
-
-  /// Uploads a profile picture to Firebase Storage and returns the download URL
-  Future<String> uploadProfilePicture(String userId, File imageFile) async {
-    final storageRef = FirebaseStorage.instance.ref();
-    final profilePicRef = storageRef.child('profile_pictures/$userId.jpg');
-
-    await profilePicRef.putFile(imageFile);
-    return await profilePicRef.getDownloadURL();
   }
 }
