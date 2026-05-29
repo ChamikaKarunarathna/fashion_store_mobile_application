@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/app_user.dart';
 import '../services/user_service.dart';
 import '../theme/app_theme.dart';
@@ -21,6 +23,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _emailController;
 
   bool _isSaving = false;
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -38,18 +42,36 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
+  }
+
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
 
     try {
+      String? photoUrl = widget.user.photoUrl;
+
+      if (_imageFile != null) {
+        photoUrl = await _userService.uploadProfilePicture(widget.user.id, _imageFile!);
+      }
+
       final updatedUser = AppUser(
         id: widget.user.id,
         email: widget.user.email, // Email change requires Firebase Auth re-auth, keeping as is
         fullName: _nameController.text.trim(),
         phone: _phoneController.text.trim(),
-        photoUrl: widget.user.photoUrl,
+        address: widget.user.address,
+        city: widget.user.city,
+        zip: widget.user.zip,
+        photoUrl: photoUrl,
         createdAt: widget.user.createdAt,
       );
 
@@ -107,31 +129,36 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: AppTheme.borderGrey.withValues(alpha: 0.5),
-                      backgroundImage: widget.user.photoUrl != null
-                          ? NetworkImage(widget.user.photoUrl!)
-                          : null,
-                      child: widget.user.photoUrl == null
-                          ? const Icon(Icons.person, size: 50, color: AppTheme.textGrey)
-                          : null,
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: const BoxDecoration(
-                          color: AppTheme.primaryGreen,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
+                child: GestureDetector(
+                  onTap: _pickImage,
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: AppTheme.borderGrey.withValues(alpha: 0.5),
+                        backgroundImage: _imageFile != null
+                            ? FileImage(_imageFile!) as ImageProvider
+                            : (widget.user.photoUrl != null
+                                ? NetworkImage(widget.user.photoUrl!)
+                                : null),
+                        child: (_imageFile == null && widget.user.photoUrl == null)
+                            ? const Icon(Icons.person, size: 50, color: AppTheme.textGrey)
+                            : null,
                       ),
-                    ),
-                  ],
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: const BoxDecoration(
+                            color: AppTheme.primaryGreen,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 32),
