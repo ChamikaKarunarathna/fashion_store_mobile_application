@@ -3,7 +3,7 @@ import '../models/product.dart';
 import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/product_card.dart';
-import 'collection_screen.dart';
+import 'shop_screen.dart';
 import 'product_details_screen.dart';
 import 'cart_screen.dart';
 import 'profile_screen.dart';
@@ -357,7 +357,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const CollectionScreen()),
+                        MaterialPageRoute(builder: (context) => const ShopScreen()),
                       );
                     },
                     child: Row(
@@ -456,7 +456,7 @@ class _HomeScreenState extends State<HomeScreen> {
           } else if (index == 1) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const CollectionScreen()),
+              MaterialPageRoute(builder: (context) => const ShopScreen()),
             );
           } else {
             setState(() {
@@ -478,8 +478,9 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.search_outlined),
-            label: 'Search',
+            icon: Icon(Icons.storefront_outlined),
+            activeIcon: Icon(Icons.storefront),
+            label: 'Shop',
           ),
           BottomNavigationBarItem(
             icon: CartBadgeIcon(icon: Icons.shopping_cart_outlined),

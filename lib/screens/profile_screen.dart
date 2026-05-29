@@ -1,9 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import 'cart_screen.dart';
-import 'collection_screen.dart';
+import 'shop_screen.dart';
 import 'orders_screen.dart';
 import 'edit_profile_screen.dart';
 import 'shipping_address_screen.dart';
@@ -37,7 +38,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } else if (index == 1) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const CollectionScreen()),
+        MaterialPageRoute(builder: (context) => const ShopScreen()),
       );
     } else if (index == 2) {
       Navigator.pushReplacement(
@@ -101,13 +102,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(50),
                               child: photoUrl != null
-                                  ? Image.network(
-                                      photoUrl,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return const Icon(Icons.person, size: 50, color: AppTheme.textLightGrey);
-                                      },
-                                    )
+                                  ? (photoUrl.startsWith('data:image')
+                                      ? Image.memory(
+                                          base64Decode(photoUrl.split(',').last),
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.person, size: 50, color: AppTheme.textLightGrey),
+                                        )
+                                      : Image.network(
+                                          photoUrl,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.person, size: 50, color: AppTheme.textLightGrey),
+                                        ))
                                   : const Icon(Icons.person, size: 50, color: AppTheme.textLightGrey),
                             ),
                           ),
@@ -278,9 +283,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             activeIcon: Icon(Icons.home),
             label: 'Home',
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.search_outlined),
-            label: 'Search',
+          BottomNavigationBarItem(
+            icon: Icon(Icons.storefront_outlined),
+            activeIcon: Icon(Icons.storefront),
+            label: 'Shop',
           ),
           BottomNavigationBarItem(
             icon: CartBadgeIcon(icon: Icons.shopping_cart_outlined),

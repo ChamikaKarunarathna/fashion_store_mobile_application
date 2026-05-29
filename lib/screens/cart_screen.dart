@@ -6,7 +6,7 @@ import '../services/cart_service.dart';
 import '../theme/app_theme.dart';
 import 'checkout_screen.dart';
 import 'home_screen.dart';
-import 'collection_screen.dart';
+import 'shop_screen.dart';
 import 'profile_screen.dart';
 import '../widgets/cart_badge_icon.dart';
 
@@ -405,7 +405,7 @@ class _CartScreenState extends State<CartScreen> {
           } else if (index == 1) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const CollectionScreen()),
+              MaterialPageRoute(builder: (context) => const ShopScreen()),
             );
           } else if (index == 3) {
             Navigator.pushReplacement(
@@ -431,9 +431,10 @@ class _CartScreenState extends State<CartScreen> {
             activeIcon: Icon(Icons.home),
             label: 'Home',
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.search_outlined),
-            label: 'Search',
+          BottomNavigationBarItem(
+            icon: Icon(Icons.storefront_outlined),
+            activeIcon: Icon(Icons.storefront),
+            label: 'Shop',
           ),
           BottomNavigationBarItem(
             icon: CartBadgeIcon(icon: Icons.shopping_cart_outlined),

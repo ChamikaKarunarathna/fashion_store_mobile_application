@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/app_user.dart';
@@ -43,7 +44,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 400,
+      maxHeight: 400,
+      imageQuality: 50,
+    );
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
@@ -60,7 +66,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       String? photoUrl = widget.user.photoUrl;
 
       if (_imageFile != null) {
-        photoUrl = await _userService.uploadProfilePicture(widget.user.id, _imageFile!);
+        final bytes = await _imageFile!.readAsBytes();
+        final base64String = base64Encode(bytes);
+        photoUrl = 'data:image/jpeg;base64,$base64String';
       }
 
       final updatedUser = AppUser(
@@ -139,7 +147,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         backgroundImage: _imageFile != null
                             ? FileImage(_imageFile!) as ImageProvider
                             : (widget.user.photoUrl != null
-                                ? NetworkImage(widget.user.photoUrl!)
+                                ? (widget.user.photoUrl!.startsWith('data:image')
+                                    ? MemoryImage(base64Decode(widget.user.photoUrl!.split(',').last)) as ImageProvider
+                                    : NetworkImage(widget.user.photoUrl!))
                                 : null),
                         child: (_imageFile == null && widget.user.photoUrl == null)
                             ? const Icon(Icons.person, size: 50, color: AppTheme.textGrey)
