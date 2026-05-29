@@ -4,8 +4,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../models/app_order.dart';
 import '../models/cart_item.dart';
 import '../services/order_service.dart';
+import '../services/user_service.dart';
+import '../models/app_user.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
+import 'shipping_address_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final List<CartItem> cartItems;
@@ -27,6 +30,7 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final _orderService = OrderService();
+  final _userService = UserService();
   int _selectedPaymentMethod = 0; // 0: Card, 1: Apple Pay, 2: PayPal
   bool _isPlacingOrder = false;
 
@@ -86,50 +90,77 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Delivery Address Header
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
+                  // Delivery Address section with StreamBuilder
+                  StreamBuilder<AppUser?>(
+                    stream: _userService.userStream(FirebaseAuth.instance.currentUser?.uid ?? ''),
+                    builder: (context, snapshot) {
+                      final user = snapshot.data;
+                      
+                      final names = user?.fullName.split(' ') ?? [''];
+                      final firstName = names.isNotEmpty ? names[0] : '';
+                      final lastName = names.length > 1 ? names.sublist(1).join(' ') : '';
+                      final address = user?.address ?? 'Not set';
+                      final city = user?.city ?? 'Not set';
+                      final zip = user?.zip ?? 'Not set';
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.local_shipping_outlined, color: AppTheme.primaryGreen, size: 20),
-                          const SizedBox(width: 8),
-                          Text(
-                            'DELIVERY ADDRESS',
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.local_shipping_outlined, color: AppTheme.primaryGreen, size: 20),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'DELIVERY ADDRESS',
+                                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  if (user != null) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => ShippingAddressScreen(user: user)),
+                                    );
+                                  }
+                                },
+                                child: Text(
+                                  'CHANGE',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: AppTheme.primaryGreen,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                 ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(child: _buildInputField('FIRST NAME', firstName)),
+                              const SizedBox(width: 16),
+                              Expanded(child: _buildInputField('LAST NAME', lastName)),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          _buildInputField('STREET ADDRESS', address, icon: Icons.location_on_outlined),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(flex: 2, child: _buildInputField('CITY', city)),
+                              const SizedBox(width: 16),
+                              Expanded(flex: 1, child: _buildInputField('ZIP', zip)),
+                            ],
                           ),
                         ],
-                      ),
-                      Text(
-                        'CHANGE',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppTheme.primaryGreen,
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Delivery Address Form
-                  Row(
-                    children: [
-                      Expanded(child: _buildInputField('FIRST NAME', 'Chamika')),
-                      const SizedBox(width: 16),
-                      Expanded(child: _buildInputField('LAST NAME', 'Kalhara')),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _buildInputField('STREET ADDRESS', '1/123 Dampagoda', icon: Icons.location_on_outlined),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(flex: 2, child: _buildInputField('CITY', 'Baddegama')),
-                      const SizedBox(width: 16),
-                      Expanded(flex: 1, child: _buildInputField('ZIP', '80200')),
-                    ],
+                      );
+                    }
                   ),
                   const SizedBox(height: 32),
 
@@ -358,6 +389,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         setState(() => _isPlacingOrder = true);
 
                         try {
+                          final userDoc = await _userService.userStream(user.uid).first;
+                          final addressStr = userDoc?.address != null 
+                              ? '${userDoc?.address}, ${userDoc?.city} ${userDoc?.zip}'
+                              : 'Address not set';
+
                           final order = AppOrder(
                             id: '',
                             userId: user.uid,
@@ -366,7 +402,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             deliveryFee: widget.deliveryFee,
                             total: widget.total,
                             status: 'Order Placed',
-                            deliveryAddress: '1/123 Dampagoda, Baddegama 80200', // Mock
+                            deliveryAddress: addressStr,
                             createdAt: DateTime.now(),
                           );
 

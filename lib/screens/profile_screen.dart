@@ -6,6 +6,7 @@ import 'cart_screen.dart';
 import 'collection_screen.dart';
 import 'orders_screen.dart';
 import 'edit_profile_screen.dart';
+import 'shipping_address_screen.dart';
 import '../models/app_user.dart';
 import '../services/user_service.dart';
 import '../widgets/cart_badge_icon.dart';
@@ -193,6 +194,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icons.location_on_outlined,
               title: 'Shipping Addresses',
               subtitle: 'Manage your delivery locations',
+              onTap: () {
+                if (appUser != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ShippingAddressScreen(user: appUser)),
+                  );
+                }
+              },
             ),
             const Divider(color: AppTheme.borderGrey, height: 1),
 
@@ -214,7 +223,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // Log Out
             const SizedBox(height: 8),
             ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               leading: Container(
                 width: 48,
                 height: 48,
@@ -316,11 +325,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text('Log Out'),
+            child: const Text(
+              'Log Out',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
